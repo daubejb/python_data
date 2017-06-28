@@ -59,6 +59,6 @@ print "{} and {}".format('count of unique active names: ', activeNameCount)
 #Loop through each unique name and build a file with just that data
 for uniqueActiveName in uniqueActiveNames:
     userContents = []
-#    userContents = getUserContent(uniqueActiveName)
-#    writeUserContentToCSV(uniqueActiveName, userContents)
+    userContents = getUserContent(uniqueActiveName)
+    writeUserContentToCSV(uniqueActiveName, userContents)
     
