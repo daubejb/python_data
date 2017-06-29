@@ -56,19 +56,31 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
+    run_date_time = time.strftime("%Y-%m-%d")
+    folder_name = 'Stale Mojo Content ' + run_date_time
+    file_metadata = {
+        'name' : folder_name,
+        'mimeType' : 'application/vnd.google-apps.folder'
+    }   
+    file = drive_service.files().create(body=file_metadata,
+            fields='id').execute()
+    folder_id = file.get('id')
+
     
-    for filename in os.listdir("/home/jedaube/scratch/tests"):
+    for filename in os.listdir("/home/jedaube/scratch/lists"):
+        file_to_upload = "{}{}".format('/home/jedaube/scratch/lists/',filename)
         file_metadata = {
                 'name' : filename,
-                'mimeType' : 'application/vnd.google-apps.spreadsheet'
+                'mimeType' : 'application/vnd.google-apps.spreadsheet',
+                'parents' : [ folder_id ]
                 }
-        media = MediaFileUpload('/home/jedaube/scratch/tests/jedaube.csv',
+        media = MediaFileUpload(file_to_upload,
                 mimetype='text/csv',
-                resumable=True)
+                resumable=False)
         file = drive_service.files().create(body=file_metadata,
                 media_body=media,
                 fields='id').execute()
-        time.sleep(1)
+        time.sleep(.11)
 
 #        file_metadata = {
 #                'name' : 'jedaube.csv',

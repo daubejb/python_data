@@ -1,7 +1,8 @@
+#!/usr/bin/python
 import csv
 
 # load Ken's list of stale Mojo 
-mojo = open('mojo.csv')
+mojo = open('test.csv')
 csv_mojo = csv.reader(mojo)
 
 # load usernames and active status 
@@ -17,7 +18,7 @@ def getUserContent(uniqueName):
     tempList = []
     mojo.seek(0)
     for row in csv_mojo:
-        if row[3] == uniqueName:
+        if row[4] == uniqueName:
             tempList.append(row)
     return tempList
 
@@ -26,14 +27,18 @@ def writeUserContentToCSV(uniqueActiveName, userContents):
     
     with open (tempFileName, 'wb') as csv_file:
         writer = csv.writer(csv_file,delimiter=',',quoting=csv.QUOTE_ALL)
+        header_row = ["Mark X to keep document", "Content ID", "Content URL", \
+                "Content title", "Author", "Published date", "Updated date", \
+                "Parent URL", "Number of views in last year"]
+        writer.writerow(header_row)
         for userContent in userContents: 
             writer.writerow(userContent)
 
 #Create list of unique names that have stale content
 uniqueNameCount = 0
 for row in csv_mojo:
-    if row[3] not in uniqueNames:
-        uniqueNames.append(row[3])
+    if row[4] not in uniqueNames:
+        uniqueNames.append(row[4])
         uniqueNameCount = uniqueNameCount + 1
 
 #Read through LDAP file and create a list of users that are inactive
@@ -50,11 +55,11 @@ for uniqueName in uniqueNames:
         uniqueActiveNames.append(uniqueName)
         activeNameCount = activeNameCount + 1
 
-print "{} and {}".format('count of unique names on file: ',  uniqueNameCount) 
+print "{}{}".format('count of unique names on file: ',  uniqueNameCount) 
 
-print "{} and {}".format('count of inactive ldap names: ',  inactiveNameCount) 
+print "{}{}".format('count of inactive ldap names: ',  inactiveNameCount) 
 
-print "{} and {}".format('count of unique active names: ', activeNameCount)
+print "{}{}".format('count of unique active names: ', activeNameCount)
 
 #Loop through each unique name and build a file with just that data
 for uniqueActiveName in uniqueActiveNames:
