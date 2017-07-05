@@ -58,9 +58,9 @@ def main():
     drive_service = discovery.build('drive', 'v3', http=http)
     run_date_time = time.strftime("%Y-%m-%d")
     destination_folder_name = 'Stale Mojo Content ' + run_date_time
-#    source_folder_id = '0B0wfosvn2aYUQlc3OWJMQmFQNWc'
     page_token = None
     count = 0
+    ids_to_download = []
     while True:
         response = drive_service.files().list(q="'0B0wfosvn2aYUQlc3OWJMQmFQNWc' in parents",
                                          spaces='drive',
@@ -69,10 +69,13 @@ def main():
         for file in response.get('files', []):
             # Process change
             print(" %s " % (file.get('name')))
+            ids_to_download.append(file.get('id'))
             count += 1
         page_token = response.get('nextPageToken', None)
         if page_token is None:
             break;
         print(count)
+    print(count)
+    print(ids_to_download)
 if __name__ == '__main__':
     main()
