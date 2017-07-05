@@ -2,7 +2,7 @@
 import csv
 
 # load Ken's list of stale Mojo 
-mojo = open('test.csv')
+mojo = open('mojo.csv')
 csv_mojo = csv.reader(mojo)
 
 # load usernames and active status 

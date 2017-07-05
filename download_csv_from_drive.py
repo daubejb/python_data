@@ -31,7 +31,7 @@ def get_credentials():
 
     #Returns:
     #    Credentials, the obtained credential.
-    
+
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -56,31 +56,6 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
-    run_date_time = time.strftime("%Y-%m-%d")
-    folder_name = 'Stale Mojo Content ' + run_date_time
-    file_metadata = {
-        'name' : folder_name,
-        'mimeType' : 'application/vnd.google-apps.folder'
-    }   
-    file = drive_service.files().create(body=file_metadata,
-            fields='id').execute()
-    folder_id = file.get('id')
-
-    
-    for filename in os.listdir("/home/jedaube/scratch/lists"):
-        file_to_upload = "{}{}".format('/home/jedaube/scratch/lists/',filename)
-        file_metadata = {
-                'name' : filename,
-                'mimeType' : 'application/vnd.google-apps.spreadsheet',
-                'parents' : [ folder_id ]
-                }
-        media = MediaFileUpload(file_to_upload,
-                mimetype='text/csv',
-                resumable=False)
-        file = drive_service.files().create(body=file_metadata,
-                media_body=media,
-                fields='id').execute()
-        time.sleep(.11)
 
 if __name__ == '__main__':
     main()
