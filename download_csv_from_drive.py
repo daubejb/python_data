@@ -3,12 +3,14 @@ from __future__ import print_function
 import httplib2
 import os
 import time
+import io
 
 from apiclient import discovery
+from apiclient.http import MediaIoBaseDownload
+from io import FileIO
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
-from apiclient.http import MediaFileUpload
 
 try:
     import argparse
@@ -18,7 +20,7 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/drive-python-quickstart.json
-SCOPES = 'https://www.googleapis.com/auth/drive'
+SCOPES = 'https://www.googleapis.com/auth/drive.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'MojoContentCleanUp'
 
@@ -42,7 +44,8 @@ def get_credentials():
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
+        flow = client.flow_from_clientsecrets('MojoContentCleanUp-cfc2596e800f.json',
+                SCOPES)
         flow.user_agent = APPLICATION_NAME
         if flags:
             credentials = tools.run_flow(flow, store, flags)
@@ -67,9 +70,19 @@ def main():
                                          fields='nextPageToken, files(id, name)',
                                          pageToken=page_token).execute()
         for file in response.get('files', []):
+            time.sleep(.25)
             # Process change
+            request = drive_service.files().export_media(fileId=file.get('id'),
+                    mimeType='text/csv')
+            download = "download/" + file.get('name')
+            fh = io.FileIO(download, mode='wb')
+            downloader = MediaIoBaseDownload(fh, request, chunksize=1024*1024)
+
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                print("Download %d%%." % int(status.progress() * 100))
             print(" %s " % (file.get('name')))
-            ids_to_download.append(file.get('id'))
             count += 1
         page_token = response.get('nextPageToken', None)
         if page_token is None:
@@ -77,5 +90,6 @@ def main():
         print(count)
     print(count)
     print(ids_to_download)
+
 if __name__ == '__main__':
     main()
