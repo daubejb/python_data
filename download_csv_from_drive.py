@@ -59,23 +59,20 @@ def main():
     run_date_time = time.strftime("%Y-%m-%d")
     destination_folder_name = 'Stale Mojo Content ' + run_date_time
 #    source_folder_id = '0B0wfosvn2aYUQlc3OWJMQmFQNWc'
-    FILENAME = 'zzhou.csv'
-    SRC_MIMETYPE = 'application/vnd.google-apps.spreadsheet'
-    DST_MIMETYPE = 'text/csv'
-
-    files = drive_service.files().list(
-            q='name="%s" and mimeType="%s"' % (FILENAME, SRC_MIMETYPE),
-            orderBy='modifiedTime desc,name').execute().get('files', [])
-    
-    if files:
-        fn = '%s.csv' % os.path.splitext(files[0]['name'].replace(' ', '_'))[0]
-        print('Exporting "%s" as "%s"... ' % (files[0]['name'], fn), end='')
-        data = drive_service.files().export(fileId=files[0]['id'], mimeType=DST_MIMETYPE).execute()
-
-        # if non-empty file
-        if data:
-            with open(fn, 'wb') as f:
-                f.write(data)
-            print('DONE')
+    page_token = None
+    count = 0
+    while True:
+        response = drive_service.files().list(q="'0B0wfosvn2aYUQlc3OWJMQmFQNWc' in parents",
+                                         spaces='drive',
+                                         fields='nextPageToken, files(id, name)',
+                                         pageToken=page_token).execute()
+        for file in response.get('files', []):
+            # Process change
+            print(" %s " % (file.get('name')))
+            count += 1
+        page_token = response.get('nextPageToken', None)
+        if page_token is None:
+            break;
+        print(count)
 if __name__ == '__main__':
     main()
