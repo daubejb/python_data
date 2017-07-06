@@ -7,6 +7,7 @@ import io
 
 from apiclient import discovery
 from apiclient.http import MediaIoBaseDownload
+from googleapiclient.errors import HttpError
 from io import FileIO
 from oauth2client import client
 from oauth2client import tools
@@ -33,18 +34,17 @@ def get_credentials():
 
     #Returns:
     #    Credentials, the obtained credential.
-
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
     credential_path = os.path.join(credential_dir,
-                                   'MojoContentCleanUp-cfc2596e800f.json')
+                                   CLIENT_SECRET_FILE)
 
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        flow = client.flow_from_clientsecrets('MojoContentCleanUp-cfc2596e800f.json',
+        flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE,
                 SCOPES)
         flow.user_agent = APPLICATION_NAME
         if flags:
@@ -59,24 +59,20 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     drive_service = discovery.build('drive', 'v3', http=http)
-    run_date_time = time.strftime("%Y-%m-%d")
-    destination_folder_name = 'Stale Mojo Content ' + run_date_time
     page_token = None
     count = 0
-    ids_to_download = []
     while True:
         response = drive_service.files().list(q="'0B0wfosvn2aYUQlc3OWJMQmFQNWc' in parents",
                                          spaces='drive',
                                          fields='nextPageToken, files(id, name)',
                                          pageToken=page_token).execute()
         for file in response.get('files', []):
-            time.sleep(.25)
             # Process change
             request = drive_service.files().export_media(fileId=file.get('id'),
                     mimeType='text/csv')
             download = "download/" + file.get('name')
             fh = io.FileIO(download, mode='wb')
-            downloader = MediaIoBaseDownload(fh, request, chunksize=1024*1024)
+            downloader = MediaIoBaseDownload(fh, request)
 
             done = False
             while done is False:
@@ -89,7 +85,6 @@ def main():
             break;
         print(count)
     print(count)
-    print(ids_to_download)
 
 if __name__ == '__main__':
     main()
